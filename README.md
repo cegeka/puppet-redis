@@ -91,3 +91,4 @@ Test against a specific Puppet or Facter version:
 * Commit your changes (`git commit -am 'Added some feature'`)
 * Push to the branch (`git push origin my-new-feature`)
 * Create new Pull Request
+
