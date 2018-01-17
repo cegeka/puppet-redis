@@ -608,7 +608,7 @@ class redis (
   # Sanity check
   if $::redis::slaveof {
     if $::redis::bind =~ /^127.0.0./ {
-      fail "Replication is not possible when binding to ${::redis::bind}."
+      fail("Replication is not possible when binding to ${::redis::bind}.")
     }
   }
 }

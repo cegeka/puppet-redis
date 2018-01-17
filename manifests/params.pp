@@ -209,7 +209,7 @@ class redis::params {
     }
 
     default: {
-      fail "Operating system ${::operatingsystem} is not supported yet."
+      fail("Operating system ${::operatingsystem} is not supported yet.")
     }
   }
 }
