@@ -1,216 +1,206 @@
-# = Class: redis::params
-#
-# This class provides a number of parameters.
-#
-class redis::params {
-  # Generic
-  $manage_repo = false
-
-  # redis.conf.erb
-  $activerehashing                 = true
-  $aof_load_truncated              = true
-  $aof_rewrite_incremental_fsync   = true
-  $appendfilename                  = 'appendonly.aof'
-  $appendfsync                     = 'everysec'
-  $appendonly                      = false
-  $auto_aof_rewrite_min_size       = '64mb'
-  $auto_aof_rewrite_percentage     = 100
-  $bind                            = '127.0.0.1'
-  $conf_template                   = 'redis/redis.conf.erb'
-  $databases                       = 16
-  $dbfilename                      = 'dump.rdb'
-  $extra_config_file               = undef
-  $hash_max_ziplist_entries        = 512
-  $hash_max_ziplist_value          = 64
-  $hll_sparse_max_bytes            = 3000
-  $hz                              = 10
-  $latency_monitor_threshold       = 0
-  $list_max_ziplist_entries        = 512
-  $list_max_ziplist_value          = 64
-  $log_dir                         = '/var/log/redis'
-  $log_file                        = '/var/log/redis/redis.log'
-  $log_level                       = 'notice'
-  $maxclients                      = 10000
-  $maxmemory                       = undef
-  $maxmemory_policy                = undef
-  $maxmemory_samples               = undef
-  $no_appendfsync_on_rewrite       = false
-  $notify_keyspace_events          = undef
-  $notify_service                  = true
-  $pid_file                        = '/var/run/redis/redis-server.pid'
-  $port                            = 6379
-  $rdbcompression                  = true
-  $requirepass                     = undef
-  $save_db_to_disk                 = true
-  $sentinel_auth_pass              = undef
-  $sentinel_config_file_mode       = '0644'
-  $sentinel_config_group           = 'root'
-  $sentinel_config_owner           = 'redis'
-  $sentinel_conf_template          = 'redis/redis-sentinel.conf.erb'
-  $sentinel_down_after             = 30000
-  $sentinel_failover_timeout       = 180000
-  $sentinel_master_name            = 'mymaster'
-  $sentinel_parallel_sync          = 1
-  $sentinel_port                   = 26379
-  $sentinel_quorum                 = 2
-  $sentinel_service_name           = 'redis-sentinel'
-  $sentinel_working_dir            = '/tmp'
-  $sentinel_init_template          = 'redis/redis-sentinel.init.erb'
-  $sentinel_pid_file               = '/var/run/redis/redis-sentinel.pid'
-  $sentinel_notification_script    = undef
-  $sentinel_client_reconfig_script = undef
-  $service_provider                = undef
-  $set_max_intset_entries          = 512
-  $slave_priority                  = 100
-  $slowlog_log_slower_than         = 10000
-  $slowlog_max_len                 = 1024
-  $stop_writes_on_bgsave_error     = true
-  $syslog_enabled                  = undef
-  $syslog_facility                 = undef
-  $tcp_backlog                     = 511
-  $tcp_keepalive                   = 0
-  $timeout                         = 0
-  $ulimit                          = 65536
-  $workdir                         = '/var/lib/redis/'
-  $zset_max_ziplist_entries        = 128
-  $zset_max_ziplist_value          = 64
-
-  # redis.conf.erb - replication
-  $masterauth               = undef
-  $min_slaves_to_write      = 0
-  $min_slaves_max_lag       = 10
-  $repl_backlog_size        = '1mb'
-  $repl_backlog_ttl         = 3600
-  $repl_disable_tcp_nodelay = false
-  $repl_ping_slave_period   = 10
-  $repl_timeout             = 60
-  $slave_read_only          = true
-  $slave_serve_stale_data   = true
-  $slaveof                  = undef
-
-  # redis.conf.erb - redis 3.0 clustering
-  $cluster_enabled        = false
-  $cluster_config_file    = 'nodes.conf'
-  $cluster_node_timeout   = 5000
-
-  case $::osfamily {
+# @summary This class provides a number of parameters.
+# @api private
+class redis::params inherits redis::globals {
+  case $facts['os']['family'] {
     'Debian': {
+      $ppa_repo                  = 'ppa:chris-lea/redis-server'
+
       $config_dir                = '/etc/redis'
       $config_dir_mode           = '0755'
       $config_file               = '/etc/redis/redis.conf'
-      $config_file_mode          = '0644'
       $config_file_orig          = '/etc/redis/redis.conf.puppet'
-      $config_group              = 'root'
       $config_owner              = 'redis'
-      $daemonize                 = true
+      $log_dir                   = '/var/log/redis'
       $log_dir_mode              = '0755'
-      $package_ensure            = 'present'
       $package_name              = 'redis-server'
-      $sentinel_config_file      = '/etc/redis/redis-sentinel.conf'
-      $sentinel_config_file_orig = '/etc/redis/redis-sentinel.conf.puppet'
-      $sentinel_daemonize        = true
-      $sentinel_init_script      = '/etc/init.d/redis-sentinel'
-      $sentinel_package_name     = 'redis-server'
-      $sentinel_package_ensure   = 'present'
-      $service_manage            = true
-      $service_enable            = true
-      $service_ensure            = 'running'
-      $service_group             = 'redis'
-      $service_hasrestart        = true
-      $service_hasstatus         = false
+      $pid_file                  = '/var/run/redis/redis-server.pid'
+      $workdir                   = '/var/lib/redis'
+      $daemonize                 = true
       $service_name              = 'redis-server'
-      $service_user              = 'redis'
-      $ppa_repo                  = 'ppa:chris-lea/redis-server'
+
+      $sentinel_config_file      = '/etc/redis/sentinel.conf'
+      $sentinel_config_file_orig = '/etc/redis/redis-sentinel.conf.puppet'
+      $sentinel_service_name     = 'redis-sentinel'
+      $sentinel_daemonize        = true
+      $sentinel_package_name     = 'redis-sentinel'
+      $sentinel_log_file         = '/var/log/redis/redis-sentinel.log'
+      $sentinel_working_dir      = '/var/lib/redis'
+      $sentinel_protected_mode   = true
+
+      case $facts['os']['name'] {
+        'Ubuntu': {
+          $config_group = 'redis'
+          $minimum_version = $facts['os']['release']['major'] ? {
+            '16.04' => '3.0.5',
+            '18.04' => '4.0.9',
+            default => '5.0.7',
+          }
+          $sentinel_pid_file = $facts['os']['release']['major'] ? {
+            '16.04' => '/var/run/redis/redis-sentinel.pid',
+            default => '/var/run/sentinel/redis-sentinel.pid',
+          }
+        }
+        default: {
+          $config_group              = 'root'
+          $minimum_version           = '3.2.5'
+          if versioncmp($facts['os']['release']['major'], '10') >= 0 {
+            $sentinel_pid_file         = '/run/sentinel/redis-sentinel.pid'
+          } else {
+            $sentinel_pid_file         = '/var/run/redis/redis-sentinel.pid'
+          }
+        }
+      }
     }
 
     'RedHat': {
-      $config_dir                = '/etc/redis'
-      $config_dir_mode           = '0755'
-      $config_file               = '/etc/redis.conf'
-      $config_file_mode          = '0644'
-      $config_file_orig          = '/etc/redis.conf.puppet'
-      $config_group              = 'root'
-      $config_owner              = 'redis'
-      $daemonize                 = true
-      $log_dir_mode              = '0755'
-      $package_ensure            = 'present'
-      $package_name              = 'redis'
-      $sentinel_config_file      = '/etc/redis-sentinel.conf'
-      $sentinel_config_file_orig = '/etc/redis-sentinel.conf.puppet'
-      $sentinel_daemonize        = false
-      $sentinel_init_script      = undef
-      $sentinel_package_name     = 'redis'
-      $sentinel_package_ensure   = 'present'
-      $service_manage            = true
-      $service_enable            = true
-      $service_ensure            = 'running'
-      $service_group             = 'redis'
-      $service_hasrestart        = true
-      $service_hasstatus         = true
-      $service_name              = 'redis'
-      $service_user              = 'redis'
-      $ppa_repo                  = undef
+      $ppa_repo             = undef
+      $daemonize            = false
+      $config_owner         = 'redis'
+      $config_group         = 'root'
+      $config_dir_mode      = '0755'
+      $log_dir_mode         = '0750'
+
+      $sentinel_daemonize   = false
+      $sentinel_working_dir = '/tmp'
+      $sentinel_protected_mode   = true
+
+      $scl = $redis::globals::scl
+      if $scl {
+        $config_dir                = "/etc/opt/rh/${scl}/redis"
+        $config_file               = "/etc/opt/rh/${scl}/redis.conf"
+        $config_file_orig          = "/etc/opt/rh/${scl}/redis.conf.puppet"
+        $log_dir                   = "/var/opt/rh/${scl}/log/redis"
+        $package_name              = "${scl}-redis"
+        $pid_file                  = "/var/opt/rh/${scl}/run/redis_6379.pid"
+        $service_name              = "${scl}-redis"
+        $workdir                   = "/var/opt/rh/${scl}/lib/redis"
+
+        $sentinel_config_file      = "${config_dir}/redis-sentinel.conf"
+        $sentinel_config_file_orig = "${config_dir}/redis-sentinel.conf.puppet"
+        $sentinel_service_name     = "${scl}-redis-sentinel"
+        $sentinel_package_name     = $package_name
+        $sentinel_pid_file         = "/var/opt/rh/${scl}/run/redis-sentinel.pid"
+        $sentinel_log_file         = "/var/opt/rh/${scl}/log/redis/sentinel.log"
+
+        $minimum_version = $scl ? {
+          'rh-redis32' => '3.2.13',
+          default      => '5.0.5',
+        }
+      } else {
+        $config_dir                = '/etc/redis'
+        $config_file               = '/etc/redis.conf'
+        $config_file_orig          = '/etc/redis.conf.puppet'
+        $log_dir                   = '/var/log/redis'
+        $package_name              = 'redis'
+        $pid_file                  = '/var/run/redis_6379.pid'
+        $service_name              = 'redis'
+        $workdir                   = '/var/lib/redis'
+
+        $sentinel_config_file      = '/etc/redis-sentinel.conf'
+        $sentinel_config_file_orig = '/etc/redis-sentinel.conf.puppet'
+        $sentinel_service_name     = 'redis-sentinel'
+        $sentinel_package_name     = 'redis'
+        $sentinel_pid_file         = '/var/run/redis/redis-sentinel.pid'
+        $sentinel_log_file         = '/var/log/redis/sentinel.log'
+
+        # EPEL 7 and newer have 3.2 so we can assume all EL is 3.2+
+        $minimum_version           = '3.2.12'
+      }
     }
 
     'FreeBSD': {
+      $ppa_repo                  = undef
+
       $config_dir                = '/usr/local/etc/redis'
       $config_dir_mode           = '0755'
       $config_file               = '/usr/local/etc/redis.conf'
-      $config_file_mode          = '0644'
+      $config_file_orig          = '/usr/local/etc/redis.conf.puppet'
       $config_group              = 'wheel'
       $config_owner              = 'redis'
-      $daemonize                 = true
+      $log_dir                   = '/var/log/redis'
       $log_dir_mode              = '0755'
-      $package_ensure            = 'present'
       $package_name              = 'redis'
+      $pid_file                  = '/var/run/redis/redis.pid'
+      $daemonize                 = true
+      $service_name              = 'redis'
+      $workdir                   = '/var/db/redis'
+
       $sentinel_config_file      = '/usr/local/etc/redis-sentinel.conf'
       $sentinel_config_file_orig = '/usr/local/etc/redis-sentinel.conf.puppet'
+      $sentinel_service_name     = 'redis-sentinel'
       $sentinel_daemonize        = true
-      $sentinel_init_script      = undef
       $sentinel_package_name     = 'redis'
-      $sentinel_package_ensure   = 'present'
-      $service_manage            = true
-      $service_enable            = true
-      $service_ensure            = 'running'
-      $service_group             = 'redis'
-      $service_hasrestart        = true
-      $service_hasstatus         = true
-      $service_name              = 'redis'
-      $service_user              = 'redis'
-      $ppa_repo                  = undef
+      $sentinel_pid_file         = '/var/run/redis/redis-sentinel.pid'
+      $sentinel_log_file         = '/var/log/redis/sentinel.log'
+      $sentinel_working_dir      = '/tmp'
+      $sentinel_protected_mode   = true
+
+      # pkg version
+      $minimum_version           = '3.2.4'
     }
 
     'Suse': {
+      $ppa_repo                  = undef
+
       $config_dir                = '/etc/redis'
       $config_dir_mode           = '0750'
       $config_file               = '/etc/redis/redis-server.conf'
-      $config_file_mode          = '0644'
       $config_group              = 'redis'
       $config_owner              = 'redis'
-      $daemonize                 = true
+      $log_dir                   = '/var/log/redis'
       $log_dir_mode              = '0750'
-      $package_ensure            = 'present'
       $package_name              = 'redis'
+      $pid_file                  = '/var/run/redis/redis-server.pid'
+      $daemonize                 = true
+      $service_name              = 'redis'
+      $workdir                   = '/var/lib/redis'
+
       $sentinel_config_file      = '/etc/redis/redis-sentinel.conf'
       $sentinel_config_file_orig = '/etc/redis/redis-sentinel.conf.puppet'
+      $sentinel_service_name     = 'redis-sentinel'
       $sentinel_daemonize        = true
-      $sentinel_init_script      = undef
       $sentinel_package_name     = 'redis'
-      $sentinel_package_ensure   = 'present'
-      $service_manage            = true
-      $service_enable            = true
-      $service_ensure            = 'running'
-      $service_group             = 'redis'
-      $service_hasrestart        = true
-      $service_hasstatus         = true
-      $service_name              = 'redis'
-      $service_user              = 'redis'
-      $ppa_repo                  = undef
+      $sentinel_pid_file         = '/var/run/redis/redis-sentinel.pid'
+      $sentinel_log_file         = '/var/log/redis/sentinel.log'
+      $sentinel_working_dir      = '/tmp'
+      $sentinel_protected_mode   = true
+
+      # suse package version
+      $minimum_version           = '3.0.5'
     }
 
+    'Archlinux': {
+      $ppa_repo                  = undef
+
+      $config_dir                = '/etc/redis'
+      $config_dir_mode           = '0755'
+      $config_file               = '/etc/redis/redis.conf'
+      $config_file_orig          = '/etc/redis/redis.conf.puppet'
+      $config_group              = 'root'
+      $config_owner              = 'root'
+      $log_dir                   = '/var/log/redis'
+      $log_dir_mode              = '0755'
+      $package_name              = 'redis'
+      $pid_file                  = '/var/run/redis.pid'
+      $daemonize                 = true
+      $service_name              = 'redis'
+      $workdir                   = '/var/lib/redis'
+
+      $sentinel_config_file      = '/etc/redis/redis-sentinel.conf'
+      $sentinel_config_file_orig = '/etc/redis/redis-sentinel.conf.puppet'
+      $sentinel_service_name     = 'redis-sentinel'
+      $sentinel_daemonize        = true
+      $sentinel_package_name     = 'redis'
+      $sentinel_pid_file         = '/var/run/redis/redis-sentinel.pid'
+      $sentinel_log_file         = '/var/log/redis/sentinel.log'
+      $sentinel_working_dir      = '/tmp'
+      $sentinel_protected_mode   = true
+
+      # pkg version
+      $minimum_version           = '3.2.4'
+    }
     default: {
-      fail("Operating system ${::operatingsystem} is not supported yet.")
+      fail "Operating system ${facts['os']['name']} is not supported yet."
     }
   }
 }
-
